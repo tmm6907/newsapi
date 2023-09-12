@@ -1,4 +1,4 @@
-package main
+package newsapi
 
 import (
 	"errors"
@@ -21,7 +21,8 @@ var (
 		"sports",
 		"technology",
 	}
-	LANGUAGES = [...]string{"ar",
+	LANGUAGES = [...]string{
+		"ar",
 		"de",
 		"en",
 		"es",
@@ -115,13 +116,14 @@ func (c *Config) clean() (string, error) {
 	// Validate all fields with limited options and URLencode all fields
 	//fmt.Errorf("enter valid for %s field", err)
 	params := url.Values{}
-	switch {
-	case c.Query != "":
+
+	if c.Query != "" {
 		if len(c.Query) > 500 {
 			return "", errors.New("error: query parameter 'q' exceeded max length of 500 characters")
 		}
 		params.Add("q", c.Query)
-	case len(c.SearchIn) > 0:
+	}
+	if len(c.SearchIn) > 0 {
 		for _, searchField := range c.SearchIn {
 			for _, option := range SEARCH_IN_OPTIONS {
 				if searchField == option {
@@ -134,23 +136,29 @@ func (c *Config) clean() (string, error) {
 				"error: invalid configuration, unrecognized value in query parameter: 'searchIn'",
 			)
 		}
-	case len(c.Sources) > 0:
+	}
+	if len(c.Sources) > 0 {
 		for _, option := range c.Sources {
 			params.Add("sources", option)
 		}
-	case len(c.Domains) > 0:
+	}
+	if len(c.Domains) > 0 {
 		for _, option := range c.Domains {
 			params.Add("domains", option)
 		}
-	case len(c.ExcludedDomains) > 0:
+	}
+	if len(c.ExcludedDomains) > 0 {
 		for _, option := range c.ExcludedDomains {
 			params.Add("excludedDomains", option)
 		}
-	case c.From != "":
+	}
+	if c.From != "" {
 		params.Add("from", c.From)
-	case c.To != "":
+	}
+	if c.To != "" {
 		params.Add("to", c.To)
-	case c.Language != "":
+	}
+	if c.Language != "" {
 		for _, language := range LANGUAGES {
 			if c.Language == language {
 				params.Set("language", c.Language)
@@ -161,7 +169,8 @@ func (c *Config) clean() (string, error) {
 				"error: invalid configuration, unrecognized value in query parameter: 'language'",
 			)
 		}
-	case c.SortBy != "":
+	}
+	if c.SortBy != "" {
 		for _, option := range SORT_OPTIONS {
 			if c.SortBy == option {
 				params.Set("sortBy", c.SortBy)
@@ -172,14 +181,17 @@ func (c *Config) clean() (string, error) {
 				"error: invalid configuration, unrecognized value in query parameter: 'sortBy'",
 			)
 		}
-	case c.PageSize != 0:
+	}
+	if c.PageSize != 0 {
 		if c.PageSize > 100 {
 			return "", errors.New("error: query parameter 'pageSize' exceeded max size of 100")
 		}
 		params.Add("pageSize", fmt.Sprintf("%d", c.PageSize))
-	case c.Page != 0:
+	}
+	if c.Page != 0 {
 		params.Add("page", fmt.Sprintf("%d", c.Page))
-	case c.Category != "":
+	}
+	if c.Category != "" {
 		for _, option := range CATEGORY_OPTIONS {
 			if c.Category == option {
 				params.Set("category", c.Category)
@@ -191,8 +203,6 @@ func (c *Config) clean() (string, error) {
 				"error: invalid configuration, unrecognized value in query parameter: 'category'",
 			)
 		}
-	default:
-		return "", errors.New("error: no configuration options set, query parameters not satisfied")
 	}
 
 	return params.Encode(), nil
@@ -200,21 +210,14 @@ func (c *Config) clean() (string, error) {
 
 type NewsAPIClient struct {
 	apiKey string
-	config Config
+	config *Config
 	client *http.Client
-}
-
-type Response struct {
-	StatusCode int
-	Header     http.Header
-	Body       io.ReadCloser
 }
 
 func NewClient(apiKey string) *NewsAPIClient {
 	return &NewsAPIClient{
 		client: &http.Client{},
 		apiKey: apiKey,
-		config: Config{},
 	}
 }
 
@@ -222,18 +225,17 @@ func (c *NewsAPIClient) prepareHeaders(r *http.Request) {
 	r.Header.Set("X-API-Key", c.apiKey)
 	r.Header.Set("Content-Type", "application/json")
 }
-func (c *NewsAPIClient) Get(endpoint string, config ...Config) (*Response, error) {
+func (c *NewsAPIClient) Get(endpoint string, config *Config) (*Response, error) {
 	formatedParams := ""
-	if len(config) == 1 {
-		paramString, err := config[0].clean()
+	if config != nil {
+		paramString, err := config.clean()
 		if err != nil {
 			return nil, err
 		}
 		formatedParams = paramString
-		fmt.Println("Formated: ", formatedParams)
+	} else {
+		panic("too many configs")
 	}
-
-	fmt.Println("Count: ", len(config))
 
 	for _, option := range ENDPOINTS {
 		if endpoint == option {
@@ -242,16 +244,12 @@ func (c *NewsAPIClient) Get(endpoint string, config ...Config) (*Response, error
 				return nil, err
 			}
 			c.prepareHeaders(req)
+			fmt.Println(req.URL)
 			resp, err := c.client.Do(req)
-			fmt.Println(resp, err)
 			if err != nil {
-				return &Response{
-					StatusCode: resp.StatusCode,
-					Header:     resp.Header,
-					Body:       resp.Body,
-				}, err
+				return nil, err
 			}
-			defer resp.Body.Close()
+
 			return &Response{
 				StatusCode: resp.StatusCode,
 				Header:     resp.Header,
@@ -262,23 +260,24 @@ func (c *NewsAPIClient) Get(endpoint string, config ...Config) (*Response, error
 	return nil, fmt.Errorf("unrecognized endpoint: '%s', try again", endpoint)
 }
 
-func main() {
-	connection := NewClient("81545856d8f0485fada5f42b69afa9d8")
-	res, err := connection.Get(
-		"everything",
-		Config{
-			Language: "sv",
-			Country:  "se",
-		},
-	)
-	if err != nil {
-		fmt.Println(err)
-	}
-	if res != nil {
-		fmt.Println(res.StatusCode)
-		fmt.Println(res.Body)
+type Response struct {
+	StatusCode int
+	Header     http.Header
+	Body       io.ReadCloser
+}
 
-	}
-	fmt.Println("none found")
+type ClientResponse struct {
+	Status       string    `json:"status"`
+	TotalResults int       `json:"totalResults"`
+	Articles     []Article `json:"articles"`
+}
 
+type Article struct {
+	Source      string `json:"source"`
+	Author      string `json:"author"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	ImageURL    string `json:"urlToImage"`
+	PublishedAt string `json:"publishedAt"`
+	Content     string `json:"content"`
 }

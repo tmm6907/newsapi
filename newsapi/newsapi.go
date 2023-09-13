@@ -285,7 +285,6 @@ func (c *Client) Get(endpoint string, config *Config) (*Response, error) {
 				return nil, err
 			}
 			c.prepareHeaders(req)
-			fmt.Println(req.URL)
 			resp, err := c.client.Do(req)
 			if err != nil {
 				return nil, err
@@ -295,6 +294,7 @@ func (c *Client) Get(endpoint string, config *Config) (*Response, error) {
 				StatusCode: resp.StatusCode,
 				Header:     resp.Header,
 				Body:       resp.Body,
+				RequestURL: resp.Request.URL,
 			}, nil
 		}
 	}
@@ -306,6 +306,7 @@ type Response struct {
 	StatusCode int
 	Header     http.Header
 	Body       io.ReadCloser
+	RequestURL *url.URL
 }
 
 // Article response type definition

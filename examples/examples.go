@@ -46,7 +46,8 @@ func main() {
 		fmt.Println("Failed to unmarshal", err)
 	}
 
-	fmt.Println(everythingRes.StatusCode, strings.ToUpper(everythingResult.Status))
+	fmt.Println("Request URL:", everythingRes.RequestURL)
+	fmt.Println("Status:", everythingRes.StatusCode, strings.ToUpper(everythingResult.Status))
 	fmt.Println(everythingResult.TotalResults, "results found")
 	for i := 0; i < PAGE_SIZE && i < everythingResult.TotalResults; i++ {
 		fmt.Println("Article", i+1)
@@ -79,7 +80,8 @@ func main() {
 		fmt.Println("Failed to unmarshal", err)
 	}
 
-	fmt.Println(headlinesRes.StatusCode, strings.ToUpper(headlinesResult.Status))
+	fmt.Println("Request URL:", headlinesRes.RequestURL)
+	fmt.Println("Status:", headlinesRes.StatusCode, strings.ToUpper(headlinesResult.Status))
 	fmt.Println(headlinesResult.TotalResults, "results found")
 	for i := 0; i < PAGE_SIZE && i < headlinesResult.TotalResults; i++ {
 		fmt.Println("Article", i+1)
@@ -109,7 +111,8 @@ func main() {
 		fmt.Println("Failed to unmarshal", err)
 	}
 
-	fmt.Println(headlinesRes.StatusCode, strings.ToUpper(sourceResult.Status))
+	fmt.Println("Request URL:", sourcesRes.RequestURL)
+	fmt.Println("Status:", sourcesRes.StatusCode, strings.ToUpper(sourceResult.Status))
 	fmt.Println(len(sourceResult.Sources), "results found")
 	for i := 0; i < PAGE_SIZE && i < len(sourceResult.Sources); i++ {
 		fmt.Println("Source", i+1)

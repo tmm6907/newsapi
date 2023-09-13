@@ -97,7 +97,7 @@ var (
 	SORT_OPTIONS = [...]string{"relevancy", "popularity", "publishedAt"}
 )
 
-// Request config for setting query parameters
+// Request config for setting query parameters.
 type Config struct {
 	Query           string
 	SearchIn        []string
@@ -114,7 +114,7 @@ type Config struct {
 	Category        string
 }
 
-// Validate paramaters and return a URL-encoded string of the parameters
+// Validate paramaters and return a URL-encoded string of the parameters.
 func (c *Config) clean() (string, error) {
 	params := url.Values{}
 
@@ -245,13 +245,13 @@ func (c *Config) clean() (string, error) {
 	return params.Encode(), nil
 }
 
-// Main client for interfacing with NewsAPI
+// HTTP client for interfacing with NewsAPI.
 type Client struct {
 	apiKey string
 	client *http.Client
 }
 
-// Intitializes a pointer to a new Client
+// Intitializes a new HTTP client to interface with NewsAPI.
 func NewsAPIClient(apiKey string) *Client {
 	return &Client{
 		client: &http.Client{},
@@ -259,13 +259,13 @@ func NewsAPIClient(apiKey string) *Client {
 	}
 }
 
-// Adds authentication and content-type headers to requests
+// Adds X-Api-Key and content-type headers to requests.
 func (c *Client) prepareHeaders(r *http.Request) {
 	r.Header.Set("X-API-Key", c.apiKey)
 	r.Header.Set("Content-Type", "application/json")
 }
 
-// Handels GET requests to NewsAPI
+// Handels GET requests to NewsAPI.
 func (c *Client) Get(endpoint string, config *Config) (*Response, error) {
 	formatedParams := ""
 	if config != nil {
@@ -301,7 +301,7 @@ func (c *Client) Get(endpoint string, config *Config) (*Response, error) {
 	return nil, fmt.Errorf("unrecognized endpoint: '%s', try again", endpoint)
 }
 
-// Provides controlled access to http.Response from request
+// Provides controlled access to http.Response from request.
 type Response struct {
 	StatusCode int
 	Header     http.Header
@@ -310,7 +310,7 @@ type Response struct {
 	Message    string
 }
 
-// Article response type definition
+// Represents Article response type.
 type ArticleResponse struct {
 	Status       string    `json:"status"`
 	Code         string    `json:"code"`
@@ -319,7 +319,7 @@ type ArticleResponse struct {
 	Articles     []Article `json:"articles"`
 }
 
-// Article object definition
+// News article.
 type Article struct {
 	Source      ArticleSource `json:"source"`
 	Author      string        `json:"author"`
@@ -330,13 +330,13 @@ type Article struct {
 	Content     string        `json:"content"`
 }
 
-// Article source object definition
+// News article source.
 type ArticleSource struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-// Source response type definition
+// Represents Source response type.
 type SourceResponse struct {
 	Status  string   `json:"status"`
 	Code    string   `json:"code"`
@@ -344,7 +344,7 @@ type SourceResponse struct {
 	Sources []Source `json:"sources"`
 }
 
-// Source obejct definition
+// Source obejct definition.
 type Source struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`

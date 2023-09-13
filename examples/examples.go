@@ -24,6 +24,7 @@ func main() {
 	connection := newsapi.NewsAPIClient(apiKey)
 
 	// Set query paramaters of GET request using newsapi.Config
+	// GET /everything?q=iphone&excludedDomains=techcrunch.com,thenextweb.com
 	everythingRes, err := connection.Get(
 		"everything",
 		&newsapi.Config{
@@ -62,6 +63,7 @@ func main() {
 		fmt.Println()
 	}
 
+	// GET /top-headlines?searchIn=title&pageSize=PAGE_SIZE *errors*
 	headlinesRes, err := connection.Get(
 		"top-headlines",
 		&newsapi.Config{
@@ -100,11 +102,10 @@ func main() {
 		fmt.Println()
 	}
 
+	// GET /sources?
 	sourcesRes, err := connection.Get(
 		"sources",
-		&newsapi.Config{
-			Domains: []string{"title"},
-		},
+		&newsapi.Config{},
 	)
 	if err != nil {
 		log.Fatalln(err)
@@ -128,6 +129,7 @@ func main() {
 		fmt.Println()
 	}
 	fmt.Println(len(sourceResult.Sources), "results found")
+
 	for i := 0; i < PAGE_SIZE && i < len(sourceResult.Sources); i++ {
 		fmt.Println("Source", i+1)
 		fmt.Println("ID:", sourceResult.Sources[i].ID)

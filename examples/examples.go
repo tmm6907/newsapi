@@ -28,7 +28,7 @@ func main() {
 	everythingRes, err := connection.Get(
 		"everything",
 		&newsapi.Config{
-			Query:           "iphone",
+			Sources:         []string{"bbc-news"},
 			ExcludedDomains: []string{"techcrunch.com", "thenextweb.com"},
 		},
 	)
@@ -139,4 +139,5 @@ func main() {
 		fmt.Println("Category:", sourceResult.Sources[i].Category)
 		fmt.Println()
 	}
+
 }

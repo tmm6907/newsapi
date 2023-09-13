@@ -47,7 +47,11 @@ func main() {
 	}
 
 	fmt.Println("Request URL:", everythingRes.RequestURL)
-	fmt.Println("Status:", everythingRes.StatusCode, strings.ToUpper(everythingResult.Status))
+	fmt.Println("Status Code:", everythingRes.StatusCode, strings.ToUpper(everythingResult.Status))
+	if everythingRes.StatusCode != 200 {
+		fmt.Println("ErrorMessage:", everythingResult.Message)
+		fmt.Println()
+	}
 	fmt.Println(everythingResult.TotalResults, "results found")
 	for i := 0; i < PAGE_SIZE && i < everythingResult.TotalResults; i++ {
 		fmt.Println("Article", i+1)
@@ -61,7 +65,7 @@ func main() {
 	headlinesRes, err := connection.Get(
 		"top-headlines",
 		&newsapi.Config{
-			Country:  "gb",
+			SearchIn: []string{"title"},
 			PageSize: PAGE_SIZE,
 		},
 	)
@@ -82,6 +86,10 @@ func main() {
 
 	fmt.Println("Request URL:", headlinesRes.RequestURL)
 	fmt.Println("Status:", headlinesRes.StatusCode, strings.ToUpper(headlinesResult.Status))
+	if headlinesRes.StatusCode != 200 {
+		fmt.Println("ErrorMessage:", headlinesResult.Message)
+		fmt.Println()
+	}
 	fmt.Println(headlinesResult.TotalResults, "results found")
 	for i := 0; i < PAGE_SIZE && i < headlinesResult.TotalResults; i++ {
 		fmt.Println("Article", i+1)
@@ -94,7 +102,9 @@ func main() {
 
 	sourcesRes, err := connection.Get(
 		"sources",
-		&newsapi.Config{},
+		&newsapi.Config{
+			Domains: []string{"title"},
+		},
 	)
 	if err != nil {
 		log.Fatalln(err)
@@ -113,6 +123,10 @@ func main() {
 
 	fmt.Println("Request URL:", sourcesRes.RequestURL)
 	fmt.Println("Status:", sourcesRes.StatusCode, strings.ToUpper(sourceResult.Status))
+	if sourcesRes.StatusCode != 200 {
+		fmt.Println("Error Message:", sourceResult.Message)
+		fmt.Println()
+	}
 	fmt.Println(len(sourceResult.Sources), "results found")
 	for i := 0; i < PAGE_SIZE && i < len(sourceResult.Sources); i++ {
 		fmt.Println("Source", i+1)
@@ -123,5 +137,4 @@ func main() {
 		fmt.Println("Category:", sourceResult.Sources[i].Category)
 		fmt.Println()
 	}
-
 }

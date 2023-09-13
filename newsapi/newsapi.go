@@ -307,11 +307,14 @@ type Response struct {
 	Header     http.Header
 	Body       io.ReadCloser
 	RequestURL *url.URL
+	Message    string
 }
 
 // Article response type definition
 type ArticleResponse struct {
 	Status       string    `json:"status"`
+	Code         string    `json:"code"`
+	Message      string    `json:"message"`
 	TotalResults int       `json:"totalResults"`
 	Articles     []Article `json:"articles"`
 }
@@ -336,6 +339,8 @@ type ArticleSource struct {
 // Source response type definition
 type SourceResponse struct {
 	Status  string   `json:"status"`
+	Code    string   `json:"code"`
+	Message string   `json:"message"`
 	Sources []Source `json:"sources"`
 }
 

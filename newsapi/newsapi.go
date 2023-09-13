@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	HOSTNAME          string = "https://newsapi.org/v2/"
+	BASEURL           string = "https://newsapi.org/v2/"
 	ENDPOINTS                = [...]string{"everything", "top-headlines", "top-headlines/sources", "sources"}
 	SEARCH_IN_OPTIONS        = [...]string{"title", "description", "content"}
 	CATEGORY_OPTIONS         = [...]string{
@@ -21,7 +21,7 @@ var (
 		"sports",
 		"technology",
 	}
-	LANGUAGES = [...]string{
+	LANGUAGE_OPTIONS = [...]string{
 		"ar",
 		"de",
 		"en",
@@ -37,7 +37,7 @@ var (
 		"ud",
 		"zh",
 	}
-	COUNTRIES = [...]string{
+	COUNTRY_OPTIONS = [...]string{
 		"ae",
 		"ar",
 		"at",
@@ -124,13 +124,19 @@ func (c *Config) clean() (string, error) {
 		params.Add("q", c.Query)
 	}
 	if len(c.SearchIn) > 0 {
+		searchInString := ""
 		for _, searchField := range c.SearchIn {
 			for _, option := range SEARCH_IN_OPTIONS {
 				if searchField == option {
-					params.Add("searchIn", searchField)
+					if len(searchInString) == 0 {
+						searchInString += searchField
+					} else {
+						searchInString += fmt.Sprint(",", searchField)
+					}
 				}
 			}
 		}
+		params.Add("searchIn", searchInString)
 		if params.Get("searchIn") == "" {
 			return "", errors.New(
 				"error: invalid configuration, unrecognized value in query parameter: 'searchIn'",
@@ -138,28 +144,46 @@ func (c *Config) clean() (string, error) {
 		}
 	}
 	if len(c.Sources) > 0 {
+		optionString := ""
 		for _, option := range c.Sources {
-			params.Add("sources", option)
+			if len(optionString) == 0 {
+				optionString += option
+			} else {
+				optionString += fmt.Sprint(",", option)
+			}
 		}
+		params.Add("sources", optionString)
 	}
 	if len(c.Domains) > 0 {
+		optionString := ""
 		for _, option := range c.Domains {
-			params.Add("domains", option)
+			if len(optionString) == 0 {
+				optionString += option
+			} else {
+				optionString += fmt.Sprint(",", option)
+			}
 		}
+		params.Add("domains", optionString)
 	}
 	if len(c.ExcludedDomains) > 0 {
+		optionString := ""
 		for _, option := range c.ExcludedDomains {
-			params.Add("excludedDomains", option)
+			if len(optionString) == 0 {
+				optionString += option
+			} else {
+				optionString += fmt.Sprint(",", option)
+			}
 		}
+		params.Add("excludeDomains", optionString)
 	}
 	if c.From != "" {
-		params.Add("from", c.From)
+		params.Set("from", c.From)
 	}
 	if c.To != "" {
-		params.Add("to", c.To)
+		params.Set("to", c.To)
 	}
 	if c.Language != "" {
-		for _, language := range LANGUAGES {
+		for _, language := range LANGUAGE_OPTIONS {
 			if c.Language == language {
 				params.Set("language", c.Language)
 			}
@@ -210,7 +234,6 @@ func (c *Config) clean() (string, error) {
 
 type NewsAPIClient struct {
 	apiKey string
-	config *Config
 	client *http.Client
 }
 
@@ -239,7 +262,7 @@ func (c *NewsAPIClient) Get(endpoint string, config *Config) (*Response, error) 
 
 	for _, option := range ENDPOINTS {
 		if endpoint == option {
-			req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", HOSTNAME+endpoint, formatedParams), nil)
+			req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", BASEURL+endpoint, formatedParams), nil)
 			if err != nil {
 				return nil, err
 			}
@@ -266,18 +289,38 @@ type Response struct {
 	Body       io.ReadCloser
 }
 
-type ClientResponse struct {
+type ArticleResponse struct {
 	Status       string    `json:"status"`
 	TotalResults int       `json:"totalResults"`
 	Articles     []Article `json:"articles"`
 }
 
 type Article struct {
-	Source      string `json:"source"`
-	Author      string `json:"author"`
-	Title       string `json:"title"`
+	Source      ArticleSource `json:"source"`
+	Author      string        `json:"author"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	ImageURL    string        `json:"urlToImage"`
+	PublishedAt string        `json:"publishedAt"`
+	Content     string        `json:"content"`
+}
+
+type ArticleSource struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type Source struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
-	ImageURL    string `json:"urlToImage"`
-	PublishedAt string `json:"publishedAt"`
-	Content     string `json:"content"`
+	URL         string `json:"url"`
+	Category    string `json:"category"`
+	Language    string `json:"language"`
+	Country     string `json:"country"`
+}
+
+type SourceResponse struct {
+	Status  string   `json:"status"`
+	Sources []Source `json:"sources"`
 }

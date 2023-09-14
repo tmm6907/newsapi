@@ -1,5 +1,5 @@
 # newsapi
-A Go wrapper for the [News API](https://newsapi.org/).
+A Go wrapper for [News API](https://newsapi.org/).
 
 To get started, install module using:
 ```
